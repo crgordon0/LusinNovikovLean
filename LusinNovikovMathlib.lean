@@ -196,12 +196,6 @@ lemma mem_I_iff (s : Set α) : s ∈ I f ↔ ∃ S : Set (Set α),
     exact hx
   rw[this] at Ssub; exact Ssub
 
-
-
-
-
-
-
 end SigmaIdeal
 
 section Null
@@ -552,7 +546,7 @@ lemma null_of_decomp_null
     let B (n : ℕ) (s : Set α) := if s = v n then uv n else if s = w n then uw n
       else B1 n s
     have hBeq : ∀ n : ℕ, ∀ s, B n s = if s = v n then uv n else if s = w n
-      then uw n else B1 n s := by intro n s; simp only
+      then uw n else B1 n s := by intro n s; rfl
     have hBcommon : ∀ n : ℕ, ∀ s ∈ F, B n s = B 0 s := by
       intro n s hs
       have snev : s ≠ v n := by
@@ -1173,7 +1167,7 @@ end Topology
 
 /- At this point we assume that the σ-algebra of measurable sets on α and β are
 in fact the Borel sets on α and β; we need this to know closed sets are
-measurable -/
+measurable. We also assume f is continuous -/
 variable [BorelSpace α] [BorelSpace β] (fcont : Continuous f)
 
 section SplittingLemma
@@ -1576,8 +1570,7 @@ open CantorScheme Classical
 /- To complete the proof, we need α to be a complete metric space -/
 variable [cα : CompleteSpace α]
 
-/- Lusin-Novikov: If univ is non-null (equiv, univ is not in I and thus cannot
-be written as a countable union of Borel partial sections), then there exists a
+/- Lusin-Novikov: If univ is non-null, then there exists a
 continuous injection from the Cantor set into a single fiber of f -/
 theorem exists_nat_bool_injection_fiber_of_univ_non_null
 (hnonnull : ¬IsNull f {Set.univ}) : ∃ g : (ℕ → Bool) → α,
@@ -1683,5 +1676,18 @@ Continuous g ∧ Function.Injective g ∧ ∀ x y : ℕ → Bool, f (g x) = f (g
   have auxy := hDin (PiNat.res y n.succ)
   rw[PiNat.res_length] at auxy
   use auxy
+
+/- Lusin-Novikov: If f : X → Y is a continuous injection between separable
+metrizable spaces and X complete, then either X can be covered by countably
+many Borel partial sections of f or there exists a continuous injection from
+(ℕ → Bool) to a fiber of f -/
+theorem lusin_novikov : (∃ S : Set (Set α),
+  (∀ t ∈ S, BorelPartialSection f t) ∧ S.Countable ∧ Set.univ ⊆ ⋃₀ S)
+  ∨ ∃ g : (ℕ → Bool) → α, Continuous g ∧ Function.Injective g
+  ∧ ∀ x y : ℕ → Bool, f (g x) = f (g y) := by
+    by_cases h : IsNull f {Set.univ}
+    rw[null_sing_iff_in_I, mem_I_iff] at h
+    exact Or.inl h
+    exact Or.inr (exists_nat_bool_injection_fiber_of_univ_non_null fcont h)
 
 end LusinNovikov
